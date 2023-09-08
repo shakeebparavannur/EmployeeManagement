@@ -10,6 +10,7 @@ namespace EmployeeManagement.Mapper
         {
             CreateMap<Employee,CreateEmployeeDTO>().ReverseMap();
             CreateMap<Job,JobDTO>().ReverseMap();
+            CreateMap<Department,DepartmentDTO>().ReverseMap();
         }
     }
 }

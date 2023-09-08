@@ -1,4 +1,5 @@
-﻿using EmployeeManagement.Models;
+﻿using Azure;
+using EmployeeManagement.Models;
 using EmployeeManagement.Models.DTOs;
 using EmployeeManagement.Service;
 using Microsoft.AspNetCore.Http;
@@ -9,22 +10,84 @@ namespace EmployeeManagement.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class JobsController : ControllerBase
+    public class DepartmentController : ControllerBase
     {
-        private readonly IJobService jobService;
+        private readonly IDepartmentService _departmentService;
         private APIResponse response;
-        public JobsController(IJobService jobService)
+        public DepartmentController(IDepartmentService departmentService)
         {
-            this.jobService = jobService;
-            response = new APIResponse();
+            _departmentService = departmentService;
+            response = new();
         }
         /// <summary>
-        /// Method to create a new job
+        /// Method to get all department
         /// </summary>
-        /// <param name="job"> details aboout the job</param>
-        /// <returns> Added Job Datas</returns>
-        [HttpPost("add-new-job")]
-        public async Task<IActionResult> AddNewJob(JobDTO job)
+        /// <returns>List of Department</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetAllDept()
+        {
+            try
+            {
+                var getDept = await _departmentService.GetAllDepartment();
+                if(getDept == null)
+                {
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    response.ErrorMessages.Add("Error occured while fetching data");
+                    response.IsSuccess = false;
+                    return BadRequest(response);
+                }
+                response.IsSuccess = true;
+                response.StatusCode = HttpStatusCode.OK;
+                response.Result = getDept;
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                response.StatusCode = HttpStatusCode.BadRequest;
+                response.ErrorMessages.Add(ex.Message);
+                response.IsSuccess = false;
+                return BadRequest(response);
+            }
+        }
+        /// <summary>
+        /// Method to get the department by id
+        /// </summary>
+        /// <param name="id">Id of the departmet that we need</param>
+        /// <returns>Department details with the id</returns>
+        [HttpGet("departmet/{id}")]
+        public async Task<IActionResult> GetDepartmentById(int id) 
+        {
+            try
+            {
+                var dept = await _departmentService.GetDepartmentById(id);
+                if(dept == null)
+                {
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    response.ErrorMessages.Add("Error occured while fetching data");
+                    response.IsSuccess = false;
+                    return BadRequest(response);
+                }
+                response.IsSuccess = true;
+                response.StatusCode = HttpStatusCode.OK;
+                response.Result = dept;
+                return Ok(response);
+
+            }
+            catch(Exception ex)
+            {
+                response.StatusCode = HttpStatusCode.BadRequest;
+                response.ErrorMessages.Add(ex.Message);
+                response.IsSuccess = false;
+                return BadRequest(response);
+            }
+        }
+        /// <summary>
+        /// Method to add new department
+        /// </summary>
+        /// <param name="department"> Datas about the new department</param>
+        /// <returns> New department</returns>
+        [HttpPost("add-new-department")]
+        public async Task<IActionResult> AddDepartmet(DepartmentDTO department)
         {
             if (!ModelState.IsValid)
             {
@@ -36,10 +99,8 @@ namespace EmployeeManagement.Controllers
             }
             try
             {
-
-
-                var newJob = await jobService.AddNewJob(job);
-                if (newJob == null)
+                var dept = await _departmentService.AddNewDepartment(department);
+                if(dept == null)
                 {
                     response.StatusCode = HttpStatusCode.BadRequest;
                     response.ErrorMessages.Add("Error occured while fetching data");
@@ -48,70 +109,7 @@ namespace EmployeeManagement.Controllers
                 }
                 response.IsSuccess = true;
                 response.StatusCode = HttpStatusCode.OK;
-                response.Result = newJob;
-                return Ok(response);
-
-            }
-            catch (Exception ex)
-            {
-                response.StatusCode = HttpStatusCode.BadRequest;
-                response.ErrorMessages.Add(ex.Message);
-                response.IsSuccess = false;
-                return BadRequest(response);
-            }
-
-        }
-        /// <summary>
-        /// Method to get all jobs in the data context
-        /// </summary>
-        /// <returns> List of Jobs</returns>
-        [HttpGet("getalljobs")]
-        public async Task<IActionResult> GetJobs()
-        {
-            try
-            {
-                var jobs = await jobService.GetAllJob();
-                if(jobs == null)
-                {
-                    response.StatusCode = HttpStatusCode.BadRequest;
-                    response.ErrorMessages.Add("Error occured while fetching data");
-                    response.IsSuccess = false;
-                    return BadRequest(response);
-                }
-                response.IsSuccess = true;
-                response.StatusCode = HttpStatusCode.OK;
-                response.Result = jobs;
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.StatusCode = HttpStatusCode.BadRequest;
-                response.ErrorMessages.Add(ex.Message);
-                response.IsSuccess = false;
-                return BadRequest(response);
-            }
-        }
-        /// <summary>
-        /// The methods to return job ny id
-        /// </summary>
-        /// <param name="id">Id of the job</param>
-        /// <returns> The job witn the id</returns>
-        [HttpGet("job/{id}")]
-        public async Task<IActionResult> GetJobById(int id)
-        {
-            try
-            {
-                var job = await jobService.GetJobById(id);
-                if(job == null)
-                {
-                    response.StatusCode = HttpStatusCode.BadRequest;
-                    response.ErrorMessages.Add("Error occured while fetching data");
-                    response.IsSuccess = false;
-                    return BadRequest(response);
-                }
-                response.IsSuccess = true;
-                response.StatusCode = HttpStatusCode.OK;
-                response.Result = job;
+                response.Result = dept;
                 return Ok(response);
             }
             catch(Exception ex)
@@ -122,13 +120,18 @@ namespace EmployeeManagement.Controllers
                 return BadRequest(response);
             }
         }
+        /// <summary>
+        /// Method to delete a department
+        /// </summary>
+        /// <param name="id">Id of the department to be deleted</param>
+        /// <returns>True or false by the deleted status</returns>
         [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> RemoveJob(int id)
+        public async Task<IActionResult> RemoveDepartment(int id)
         {
             try
             {
-                var removeJob = await jobService.RemoveJob(id);
-                if (removeJob == false)
+                var delDept = await _departmentService.RemoveDepartment(id);
+                if (delDept == false)
                 {
                     response.StatusCode = HttpStatusCode.BadRequest;
                     response.ErrorMessages.Add("Unable to delete the data");
@@ -137,7 +140,7 @@ namespace EmployeeManagement.Controllers
                 }
                 response.IsSuccess = true;
                 response.StatusCode = HttpStatusCode.OK;
-                response.Result = removeJob;
+                response.Result = delDept;
                 return Ok(response);
             }
             catch(Exception ex)
@@ -148,8 +151,14 @@ namespace EmployeeManagement.Controllers
                 return BadRequest(response);
             }
         }
+        /// <summary>
+        /// Method to update the existing department
+        /// </summary>
+        /// <param name="id">Id of the department needs to update</param>
+        /// <param name="department"> Datas need to update</param>
+        /// <returns>Updated Department</returns>
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateJob(int id, JobDTO job)
+        public async Task<IActionResult> UpdateDepartment(int id,DepartmentDTO department)
         {
             if (!ModelState.IsValid)
             {
@@ -161,8 +170,8 @@ namespace EmployeeManagement.Controllers
             }
             try
             {
-                var updateJob = await jobService.UpdateJob(id, job);
-                if (updateJob == null)
+                var updateDept = await _departmentService.UpdateDepartment(id, department);
+                if (updateDept == null)
                 {
                     response.StatusCode = HttpStatusCode.BadRequest;
                     response.ErrorMessages.Add("unable to update the data");
@@ -171,10 +180,10 @@ namespace EmployeeManagement.Controllers
                 }
                 response.IsSuccess = true;
                 response.StatusCode = HttpStatusCode.OK;
-                response.Result = updateJob;
+                response.Result = updateDept;
                 return Ok(response);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 response.StatusCode = HttpStatusCode.BadRequest;
                 response.ErrorMessages.Add(ex.Message);
@@ -182,5 +191,6 @@ namespace EmployeeManagement.Controllers
                 return BadRequest(response);
             }
         }
+
     }
 }

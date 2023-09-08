@@ -17,6 +17,7 @@ namespace EmployeeManagement.Models.DTOs
         public string? City { get; set; }
         [Required]
         public int Salary { get; set; }
+        [Required]
         public int JobId { get; set; }
         
         public DateTime? JoinedDate { get; set; }

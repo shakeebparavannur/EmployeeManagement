@@ -25,7 +25,7 @@ namespace EmployeeManagement.Service
             _mapper = mapper;
             secretKey = configuration.GetValue<string>("Jwt:Key");
         }
-        public async Task<Employee> AddNewEmployee(CreateEmployeeDTO employeeDto)
+        public async Task<String> AddNewEmployee(CreateEmployeeDTO employeeDto)
         {
             if (employeeDto == null) throw new ArgumentNullException("Please check the input vallues");
             
@@ -38,7 +38,8 @@ namespace EmployeeManagement.Service
             employee.Password = password;
             await _context.Employees.AddAsync(employee);
             await _context.SaveChangesAsync();
-            return employee;
+            string message = "You have successfully registerd your password should be last 4 letter of name and last 4 digit of number ";
+            return message;
         }
 
 
@@ -84,6 +85,18 @@ namespace EmployeeManagement.Service
             return employees;
         }
 
+        
+
+        public  bool IsUniquePhonenumber(string phonenumber)
+        {
+            var employee =  _context.Employees.FirstOrDefault(e => e.Phone == phonenumber);
+            if (employee == null)
+            {
+                return true;
+            }
+            return false;
+        }
+
         public async Task<LoginResponseDTO> Login(LoginReqDTO loginReqDTO)
         {
             var user = await _context.Employees.Include(p=>p.Job).ThenInclude(p=>p.Department).FirstOrDefaultAsync(u => u.Phone == loginReqDTO.PhoneNo);
@@ -91,7 +104,7 @@ namespace EmployeeManagement.Service
             {
                 throw new Exception("Invalid Credential");
             }
-            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenHandler = new JwtSecurityTokenHandler();   
             var key = Encoding.ASCII.GetBytes(secretKey);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -122,13 +135,8 @@ namespace EmployeeManagement.Service
             {
                 throw new Exception($"Invalid id {id}");
             }
-            _employee.Name = employee.Name;
-            _employee.Phone = employee.Phone;
-            _employee.Address = employee.Address;
-            _employee.City = employee.City;
-            _employee.Salary = employee.Salary;
-            _employee.JobId = employee.JobId;
-            _employee.JoinedDate = employee.JoinedDate;
+
+            _mapper.Map(employee, _employee);
 
             await _context.SaveChangesAsync();
             return _employee;

@@ -2,6 +2,7 @@
 using EmployeeManagement.Data;
 using EmployeeManagement.Models;
 using EmployeeManagement.Models.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmployeeManagement.Service
 {
@@ -28,24 +29,47 @@ namespace EmployeeManagement.Service
             return jobDto;
         }
 
-        public Task<IEnumerable<Job>> GetAllJob()
+        public async Task<IEnumerable<Job>> GetAllJob()
         {
-            throw new NotImplementedException();
+            var jobs = await _employeeContext.Jobs.ToListAsync();
+            if (jobs == null)
+            {
+                return null;
+            }
+            return jobs;
+        }
+        public async Task<Job> GetJobById(int id)
+        {
+            var job = await _employeeContext.Jobs.SingleOrDefaultAsync(j=>j.JobId == id);
+            if (job == null)
+            {
+                throw new Exception("Data not found");
+            }
+            return job;
         }
 
-        public Task<Job> GetJobById(int id)
+        public async Task<bool> RemoveJob(int id)
         {
-            throw new NotImplementedException();
+            var job = await _employeeContext.Jobs.SingleOrDefaultAsync(j=> j.JobId == id);
+            if(job == null)
+            {
+                return false;
+            }
+            _employeeContext.Jobs.Remove(job);
+            await _employeeContext.SaveChangesAsync() ;
+            return true;
         }
 
-        public Task<bool> RemoveJob(int id)
+        public async Task<Job> UpdateJob(int id, JobDTO job)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<Job> UpdateJob(int id, JobDTO job)
-        {
-            throw new NotImplementedException();
+            var _job = await _employeeContext.Jobs.SingleOrDefaultAsync(j => j.JobId == id);
+            if(_job == null)
+            {
+                throw new Exception("Data Not Found");
+            }
+            mapper.Map(job,_job);
+            await _employeeContext.SaveChangesAsync();
+            return _job;
         }
     }
 }
