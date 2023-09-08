@@ -4,6 +4,10 @@ namespace EmployeeManagement.Data
 {
     public class DataSeeder
     {
+        /// <summary>
+        /// method to seed some initial data if there is no data in the database
+        /// </summary>
+        /// <param name="context"> dta context</param>
         public static void SeedEmployeeData(EmployeeContext context)
         {
             if (!context.Employees.Any())
@@ -26,7 +30,10 @@ namespace EmployeeManagement.Data
                 context.SaveChanges();
             }
         }
-
+        /// <summary>
+        /// method to seed some initial data if there is no data in the database
+        /// </summary>
+        /// <param name="context"> dta context</param>
         public static void SeedJobData(EmployeeContext context)
         {
             if (!context.Employees.Any())
@@ -44,6 +51,10 @@ namespace EmployeeManagement.Data
                 context.SaveChanges();
             }
         }
+        /// <summary>
+        /// method to seed some initial data if there is no data in the database
+        /// </summary>
+        /// <param name="context"> dta context</param>
         public static void SeedDepartment(EmployeeContext context)
         {
             if(!context.Employees.Any())
